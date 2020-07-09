@@ -1,0 +1,3 @@
+parameters:
+    v12mike.metacaptcha.tables.plugins: %core.table_prefix%metacaptcha_plugins
+    v12mike.metacaptcha.tables.sessions: %core.table_prefix%metacaptcha_sessions

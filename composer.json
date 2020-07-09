@@ -1,0 +1,32 @@
+{
+    "name": "v12mike/metacaptcha",
+    "type": "phpbb-extension",
+    "description": "Metacaptcha Extension for phpBB 3.3.x This captcha plugin allows the simultanious configuration of multiple captcha plugins, with each user attempt being directed to a different plugin to make spoofing more difficult.",
+    "homepage": "https://github.com/v12mike/metacaptcha",
+    "version": "1.0.1-dev",
+    "time": "2020-07-09",
+    "license": "GPL-2.0-only",
+    "authors": [
+        {
+            "name": "Mike Morrin",
+            "homepage": "http://www...",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "composer/installers": "~1.0.0",
+        "phpbb/phpbb": ">=3.3.0,<3.4@dev"
+    },
+    "extra": {
+        "display-name": "Metacaptcha",
+        "soft-require": {
+            "phpbb/phpbb": ">=3.3.0,<3.4@dev"
+        },
+        "version-check": {
+            "host": "www.xyz.co",
+            "directory": "/",
+            "filename": "version_check"
+        }
+    }
+}

@@ -1,0 +1,22 @@
+imports:
+    - { resource: tables.yml }
+
+services:
+    v12mike.metacaptcha.captcha.metacaptcha:
+        class: v12mike\metacaptcha\captcha\metacaptcha
+        calls:
+            - [set_name, [v12mike.metacaptcha.captcha.metacaptcha]]
+        arguments:
+            - '@dbal.conn'
+            - '@cache.driver'
+            - '@config'
+            - '@log'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@language'
+            - '@captcha.factory'
+            - '%v12mike.metacaptcha.tables.plugins%'
+            - '%v12mike.metacaptcha.tables.sessions%'
+        tags:
+            - { name: captcha.plugins }
