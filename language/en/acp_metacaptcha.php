@@ -1,7 +1,7 @@
 <?php
 /**
 *
-* sortables captcha [English]
+* metacaptcha [English]
 *
 * @copyright (c) v12mike <http://www....>
 * @license GNU General Public License, version 2 (GPL-2.0)
@@ -38,7 +38,6 @@ $lang = array_merge($lang, array(
 	'AVAILABLE_PLUGINS_EXPLAIN' 	=> 'These plugins are not active',
 	'CONFIGURED_PLUGINS'			=> 'Configured Plugins',
 	'CONFIGURED_PLUGINS_EXPLAIN'	=> 'These plugins are active (if available) and are presented to the user in order of the configured priorities',
-	'CONFIRM_QUESTION_WRONG'		=> 'You have incorrectly sorted the items to the correct list of the confirmation question.',
 	'PLUGINS'   					=> 'Plugins',
 	'PLUGIN_ACTIVE' 				=> 'Active',
 	'PLUGIN_DELETED'				=> 'Plugin Deleted',

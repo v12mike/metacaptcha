@@ -68,9 +68,10 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	 * @param \phpbb\request\request_interface		$request
 	 * @param \phpbb\template\template				$template
 	 * @param \phpbb\user							$user
-	 * @param string								$table_sortables_questions
-	 * @param string								$table_sortables_answers
-	 * @param string								$table_sortables_confirm
+	 * @param \phpbb\language\language				$language,
+	 * @param \phpbb\captcha\factory				$captcha_factory, 
+	 * @param string								$table_metacaptcha_plugins 
+	 * @param string								$table_metacaptcha_sessions
 	 */
 	public function __construct(\phpbb\db\driver\driver_interface $db,
 								\phpbb\cache\driver\driver_interface $cache,
@@ -150,9 +151,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 
 	/**
 	 * Load the plugin data for the current session.
-	 * If any non-random plugins are present, the first is loaded
-	 * Else if any random plugins are prepesent, on is chosen
-	 *
+	 * The highest priority unsolved plugin is loaded
 	 */
 	protected function load_plugin()
 	{
@@ -281,13 +280,22 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	}
 
 	/**
-	*  API function, if sessions are pruned also remove related sortables_confirm rows
+	*  API function, if sessions are pruned also remove related metacaptcha_session rows
 	*/
 	public function garbage_collect($type = 0)
 	{
 		//call garbage collection for all configured plugins
+		$sql = 'SELECT plugin_service_name
+				FROM ' . $this->table_metacaptcha_plugins	;
+		$result = $this->db->sql_query($sql, 3600);
 
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$plugin = $this->captcha_factory->get_instance($this->plugin_service_name);
+			$plugin->garbage_collect($type);
+		}
 
+		// clear out our stale metacapture sessions
 		// Using subquery for SQLite support (instead of using DELETE with LEFT JOIN directly) this however causes the following
 		// problem in MySQL "You can't specify target table for update in FROM clause", workaround by adding a derived table on the subquery result
 		$sql = 'DELETE FROM ' . $this->table_metacaptcha_sessions . '
@@ -310,7 +318,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	*/
 	public function uninstall()
 	{
-		$this->garbage_collect(0);
+		$this->garbage_collect();
 	}
 
 	/**
@@ -362,7 +370,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	/**
 	* See if there is already an entry for the current session.
 	*/
-	public function load_captcha_session_id()
+	private function load_captcha_session_id()
 	{
 		$sql = 'SELECT captcha_session_id
 			FROM ' . $this->table_metacaptcha_sessions . "
@@ -394,7 +402,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 		{
 			return $this->plugin->get_attempt_count();
 		}
-        // all plugins are done, we don really care about attempts
+        // all plugins are done, we don't really care about attempts
 		return 0;
 	}
 
@@ -448,7 +456,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 			'SERVICE_NAME'	=> $this->get_service_name(),
 		));
 
-		// Delete question
+		// Delete plugin
 		if ($plugin_service_name && $action == 'delete')
 		{
 			// Show confirm box and check for last captcha
@@ -493,31 +501,6 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	}
 
 	/**
-	 * When no trigger_error's have kicked in on the acp_page, display the question data
-	 *
-	 * @param array $question Can be $question (from database) or $question_input (from user)
-	 */
-	protected function acp_page_display_editor($module, $plugin)
-	{
-		$acp_configure_url = $module->u_action . "&amp;configure=1&amp;select_captcha=" . $this->get_service_name() . '&amp;plugin_service_name=' . $plugin['plugin_service_name'] . '&amp;plugin_name=' . $plugin['plugin_name'];
-		$this->template->assign_vars(array(
-			'PLUGIN_NAME'		=> $plugin['plugin_name'],
-			'PLUGIN_SERVICE_NAME'		=> $plugin['plugin_service_name'],
-			'PRIORITY'			=> $plugin['priority'],
-			'U_CONFIGURE'   	=> $acp_configure_url,
-		));
-
-		// Create priority selectbox
-		for ($i = 1; $i < 6; $i++)
-		{
-			$this->template->assign_block_vars('priorities', array(
-				'LEVEL' => $i,
-				'DISPLAY' => strval($i),
-			));
-		}
-	}
-
-	/**
 	 * Shows a confirm_box and deletes the captcha plugin when
 	 * confirmed. This function displays an error when an admin
 	 * tries to delete the last captcha while this captcha plugin is
@@ -525,7 +508,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	 *
 	 * @param int $plugin_id
 	 */
-	protected function acp_plugin_delete_confirm($plugin_id, $plugin_service_name)
+	private function acp_plugin_delete_confirm($plugin_id, $plugin_service_name)
 	{
 		// Make sure the user is not deleting the last plugin when this plugin is active
 		if (!$this->acp_is_last($plugin_id))
@@ -626,7 +609,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	*  Grab a plugin from database and bring it into a format the
 	*  editor understands
 	*/
-	public function acp_get_plugin_data($plugin_id)
+	private function acp_get_plugin_data($plugin_id)
 	{
 		if ($plugin_id)
 		{
@@ -649,7 +632,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	*  Grab a plugin from input and bring it into a format the
 	*  editor understands
 	*/
-	public function acp_get_plugin_input()
+	private function acp_get_plugin_input()
 	{
 		$plugin = array(
 			'plugin_id' 			=> $this->request->variable('plugin_id', ''),
@@ -662,12 +645,9 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	}
 
 	/**
-	 * Update a question
-	 *
-	 * @param mixed $data An array as created from acp_get_question_input or acp_get_question_data
-	 * @param integer $question_id
+	 * Update parameters of a plugin
 	 */
-	public function acp_update_plugin()
+	private function acp_update_plugin()
 	{
 
 		$data = $this->acp_get_plugin_input();
@@ -683,8 +663,8 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 	}
 
 	/**
-	 * Insert a question
-	 * @param mixed $data An array as created from acp_get_question_input or acp_get_question_data
+	 * Insert a plugin
+	 * @param mixed $data An array as created from request
 	 */
 	public function acp_insert_plugin($data)
 	{
@@ -699,8 +679,8 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 
 
 	/**
-	 * Delete a question
-	 * @param integer $question_id
+	 * Delete a plugin
+	 * @param integer $plugin_id
 	 */
 	public function acp_delete_plugin($plugin_id)
 	{
@@ -717,7 +697,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 
 	/**
 	*  Check if the entered data can be inserted/used
-	* param mixed $data : an array as created from acp_get_question_input or acp_get_question_data
+	* param mixed $data : an array as created from request
 	*/
 	public function validate_input($input_data)
 	{

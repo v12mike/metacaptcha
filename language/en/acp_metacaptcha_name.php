@@ -1,7 +1,7 @@
 <?php
 /**
 *
-* sortables captcha [English]
+* metacaptcha [English]
 *
 * @copyright (c) v12mike <http://www....>
 * @license GNU General Public License, version 2 (GPL-2.0)

@@ -15,7 +15,7 @@ class ext extends \phpbb\extension\base
 
 	/**
 	 * Check the phpBB version to determine if this extension can be enabled.
-	 * Sortables extends from phpBB's default Q&A captcha. Since phpBB 3.2.6 object arguments were no longer
+	 * metacpatcha extends from phpBB's default Q&A captcha. Since phpBB 3.2.6 object arguments were no longer
 	 * passed by reference which resulted in "declaration should be compatible" errors.
 	 *
 	 * @return boolean
