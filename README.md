@@ -1,11 +1,11 @@
 # metacaptcha
 A CAPTCHA plugin for phpBB which enables multiple other CAPTCHA plugins to be simultaneously active
 
-When a user tries to register (or perform any CAPTCHA-protected action) he is presented with a CAPTCHA and when that has been solved he is presented with a second differnet CAPTCHA (and potentially more after that).
+When a user tries to register (or perform any CAPTCHA-protected action) he is presented with a CAPTCHA and when that has been solved he is presented with a second different CAPTCHA (and potentially more after that).
 
 This extension does not add a new user-facing CAPTCHA, but just changes the way that existing CAPTCHAs (built-in or extensions) are used.
 
-Meta-CAPTCHA is believed to be functionally compatible with all existing phpBB CAPTCHA plugins.  
+Meta-CAPTCHA is believed to be functionally compatible with all existing phpBB CAPTCHA plugins (built-in or extension).  
 
 # Installation and configuration
 
