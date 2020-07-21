@@ -291,7 +291,7 @@ class metacaptcha extends \phpbb\captcha\plugins\qa
 
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			$plugin = $this->captcha_factory->get_instance($this->plugin_service_name);
+			$plugin = $this->captcha_factory->get_instance($row['plugin_service_name']);
 			$plugin->garbage_collect($type);
 		}
 
